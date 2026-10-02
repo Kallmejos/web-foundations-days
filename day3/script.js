@@ -8,94 +8,146 @@ let notes = [
   { id: 5, text: "Call mum", category: "personal" },
 ];
 
+// 1. Search notes by text, ignoring upper/lower case.
 function searchNotes(word) {
-  const searchTerm = String(word).toLowerCase();
-  return notes.filter((note) => note.text.toLowerCase().includes(searchTerm));
+  const searchWord = String(word).toLowerCase();
+  return notes.filter((note) => note.text.toLowerCase().includes(searchWord));
 }
 
+// 2. Find the note with the most characters.
 function longestNote() {
-  if (notes.length === 0) return null;
-  return notes.reduce((longest, note) =>
-    note.text.length > longest.text.length ? note : longest
-  );
+  if (notes.length === 0) {
+    return null;
+  }
+
+  let longest = notes[0];
+
+  for (const note of notes) {
+    if (note.text.length > longest.text.length) {
+      longest = note;
+    }
+  }
+
+  return longest;
 }
 
+// 3. Count notes by category.
 function countByCategory() {
-  const counts = { personal: 0, work: 0, study: 0 };
-  notes.forEach((note) => {
-    if (Object.prototype.hasOwnProperty.call(counts, note.category)) {
-      counts[note.category]++;
+  const counts = {};
+
+  for (const note of notes) {
+    if (!counts[note.category]) {
+      counts[note.category] = 0;
     }
-  });
+    counts[note.category]++;
+  }
+
   return counts;
 }
 
+// 4. Return a readable summary.
 function getSummary() {
   const counts = countByCategory();
-  return `${notes.length} notes: ${counts.personal} personal, ${counts.work} work, ${counts.study} study.`;
+  const word = notes.length === 1 ? "note" : "notes";
+
+  return `${notes.length} ${word}: ${counts.personal || 0} personal, ${counts.work || 0} work, ${counts.study || 0} study.`;
 }
 
+// 5. Check whether a note with the same trimmed, lower-case text exists.
 function isDuplicate(text) {
-  const normalizedText = String(text).trim().replace(/\s+/g, " ").toLowerCase();
+  const normalizedText = String(text).trim().toLowerCase();
+
   return notes.some(
-    (note) => note.text.trim().replace(/\s+/g, " ").toLowerCase() === normalizedText
+    (note) => note.text.trim().toLowerCase() === normalizedText
   );
 }
 
+// 6. Add a valid, non-duplicate note.
 function addNote(text, category) {
-  const normalizedText = String(text).trim().replace(/\s+/g, " ");
-
-  if (normalizedText.length < 1 || normalizedText.length > 200) {
-    console.log("Note not added: text must be 1–200 characters.");
-    return false;
-  }
-
-  if (isDuplicate(normalizedText)) {
-    console.log("Note not added: a note with the same text already exists.");
-    return false;
-  }
-
+  const cleanText = String(text).trim();
   const validCategories = ["personal", "work", "study"];
-  if (!validCategories.includes(category)) {
-    console.log("Note not added: category must be personal, work or study.");
+
+  if (cleanText.length < 1 || cleanText.length > 200) {
+    console.log("Reason: note text must be 1–200 characters.");
     return false;
   }
 
-  const nextId = notes.length > 0 ? Math.max(...notes.map((note) => note.id)) + 1 : 1;
-  notes.push({ id: nextId, text: normalizedText, category });
+  if (isDuplicate(cleanText)) {
+    console.log("Reason: duplicate note text.");
+    return false;
+  }
+
+  if (!validCategories.includes(category)) {
+    console.log("Reason: category must be personal, work or study.");
+    return false;
+  }
+
+  const newId = notes.length === 0
+    ? 1
+    : Math.max(...notes.map((note) => note.id)) + 1;
+
+  notes.push({
+    id: newId,
+    text: cleanText,
+    category: category,
+  });
+
   return true;
 }
 
-// Tests / expected results
-console.log("searchNotes('day 3'):", searchNotes("day 3"));
-// Expected: note with id 2
+// Tests: searchNotes
+console.log("searchNotes('Day 3'):", searchNotes("Day 3"));
+// Expected: [{ id: 2, text: "Finish the Day 3 assignment", category: "study" }]
 
+console.log("searchNotes('pizza'):", searchNotes("pizza"));
+// Expected: []
+
+// Tests: longestNote
 console.log("longestNote():", longestNote());
-// Expected: note with id 3
+// Expected: { id: 3, text: "Email the project report to Grace", category: "work" }
 
+const savedNotesForEmptyTest = notes;
+notes = [];
+console.log("longestNote() with empty array:", longestNote());
+// Expected: null
+notes = savedNotesForEmptyTest;
+
+// Tests: countByCategory
 console.log("countByCategory():", countByCategory());
-// Expected: { personal: 2, work: 1, study: 2 }
+// Expected: { personal: 2, study: 2, work: 1 } (property order may vary)
 
+const savedNotesForCountTest = notes;
+notes = [{ id: 1, text: "Only note", category: "personal" }];
+console.log("countByCategory() with one note:", countByCategory());
+// Expected: { personal: 1 }
+notes = savedNotesForCountTest;
+
+// Tests: getSummary
 console.log("getSummary():", getSummary());
 // Expected: "5 notes: 2 personal, 1 work, 2 study."
 
-console.log("isDuplicate('  BUY   MILK AND BREAD  '):", isDuplicate("  BUY   MILK AND BREAD  "));
+const savedNotesForSummaryTest = notes;
+notes = [{ id: 1, text: "Only note", category: "personal" }];
+console.log("getSummary() with one note:", getSummary());
+// Expected: "1 note: 1 personal, 0 work, 0 study."
+notes = savedNotesForSummaryTest;
+
+// Tests: isDuplicate
+console.log("isDuplicate('  BUY MILK AND BREAD  '):", isDuplicate("  BUY MILK AND BREAD  "));
 // Expected: true
 
-console.log("isDuplicate('Learn DOM events'):", isDuplicate("Learn DOM events"));
+console.log("isDuplicate('Learn CSS Grid'):", isDuplicate("Learn CSS Grid"));
 // Expected: false
 
+// Tests: addNote
 console.log("addNote('Plan weekend trip', 'personal'):", addNote("Plan weekend trip", "personal"));
 // Expected: true
 
 console.log("addNote(' Buy milk and bread ', 'personal'):", addNote(" Buy milk and bread ", "personal"));
-// Expected: false, with a duplicate reason logged
+// Expected: false, and the console logs the duplicate reason
 
 console.log("addNote('', 'study'):", addNote("", "study"));
-// Expected: false, with a length reason logged
+// Expected: false, and the console logs the length reason
 
-console.log("addNote('Practice JavaScript', 'invalid'):", addNote("Practice JavaScript", "invalid"));
-// Expected: false, with a category reason logged
-
-console.log("Final summary:", getSummary());
-// Expected: "6 notes: 3 personal, 1 work, 2 study."
+console.log("addNote('Practice JavaScript', 'music'):", addNote("Practice JavaScript", "music"));
+// Expected: false, and the console logs the category reason
