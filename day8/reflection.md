@@ -1,0 +1,7 @@
+# Day 8 Reflection
+
+The most difficult concept in this course was understanding how to design a system that stays correct when many users act at the same time. It is easy to describe buying a ticket, but harder to explain what happens when two people select the same seat within milliseconds. I overcame this by breaking the process into states—available, held, and sold—and connecting the API behavior to database transactions, conditional updates, and constraints. The TicketHub example helped me understand why the database must be the final authority rather than the interface or cache.
+
+For my QuickNotes capstone, I would improve the architecture explanation by making the request flow, failure handling, and responsibility of each component easier to follow. I would also test more edge cases and make the connection between requirements, API endpoints, and the data model more explicit. This would make the design easier for another developer to review and implement. I would use the feedback I received as a checklist to prioritize the weakest or least clearly explained part, rather than changing parts that already work well.
+
+Next, I want to learn more about database transactions and indexing, automated testing, and load testing. I would like to simulate a sudden traffic spike, measure response times and errors, and use the results to improve the design instead of relying only on estimates.
